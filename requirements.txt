@@ -1,0 +1,26 @@
+
+# Document processing
+PyMuPDF
+
+# Text chunking
+langchain-text-splitters
+
+# Embeddings and vector database
+sentence-transformers
+chromadb
+
+# Retrieval and reranking
+rank-bm25
+
+# Backend API
+fastapi
+uvicorn[standard]
+
+# Frontend
+streamlit
+
+# HTTP requests
+requests
+
+# Data handling and evaluation
+pandas

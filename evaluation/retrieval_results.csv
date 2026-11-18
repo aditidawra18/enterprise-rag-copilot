@@ -1,0 +1,49 @@
+question_id,question,expected_source,semantic_rank,hybrid_rank,reranked_rank
+Q001,What are the standard office hours?,01_employee_handbook.pdf,1,1,1
+Q002,How many annual leave days are provided?,01_employee_handbook.pdf,1,1,1
+Q003,How many sick leave days are provided?,01_employee_handbook.pdf,1,1,1
+Q004,How many casual leave days are provided?,01_employee_handbook.pdf,1,1,1
+Q005,How many annual leave days can carry forward?,01_employee_handbook.pdf,1,1,1
+Q006,Who approves a leave request?,01_employee_handbook.pdf,2,1,1
+Q007,What should an employee do if absent or late?,01_employee_handbook.pdf,1,1,1
+Q008,Are public holidays part of annual leave?,01_employee_handbook.pdf,1,1,1
+Q009,Is MFA required for remote access?,02_it_access_security_policy.pdf,1,1,1
+Q010,Who approves a standard application access request?,02_it_access_security_policy.pdf,1,1,1
+Q011,What is the target fulfilment time for a standard access request?,02_it_access_security_policy.pdf,1,1,1
+Q012,Can employees share passwords with support staff?,02_it_access_security_policy.pdf,2,1,2
+Q013,How often is privileged access reviewed?,02_it_access_security_policy.pdf,1,1,1
+Q014,What happens when an employee changes roles?,02_it_access_security_policy.pdf,1,1,1
+Q015,What is the standard laptop lifecycle target?,03_laptop_asset_management_policy.pdf,1,1,1
+Q016,Who must approve a laptop replacement?,03_laptop_asset_management_policy.pdf,2,4,1
+Q017,What should an employee do if a laptop is stolen?,03_laptop_asset_management_policy.pdf,2,2,2
+Q018,What security preparation is required before laptop handover?,04_employee_onboarding_sop.pdf,1,1,1
+Q019,Within how many working days should security training be completed?,04_employee_onboarding_sop.pdf,1,1,1
+Q020,Can a new employee use a personal device if the company laptop is delayed?,04_employee_onboarding_sop.pdf,1,1,1
+Q021,What should be checked first if VPN cannot reach the gateway?,05_vpn_troubleshooting_guide.pdf,1,1,1
+Q022,What should support do when MFA fails?,05_vpn_troubleshooting_guide.pdf,1,2,2
+Q023,Should a user repeatedly retry a failing VPN login?,05_vpn_troubleshooting_guide.pdf,1,1,1
+Q024,What information should be included in a VPN support ticket?,05_vpn_troubleshooting_guide.pdf,1,1,1
+Q025,What defines a P1 incident?,06_incident_management_sop.pdf,1,1,1
+Q026,What is the P1 acknowledgement target?,06_incident_management_sop.pdf,1,1,1
+Q027,How often should stakeholders receive P1 updates?,06_incident_management_sop.pdf,1,1,1
+Q028,Who is notified for a P1 incident?,06_incident_management_sop.pdf,1,1,1
+Q029,When should a P1 post-incident review be scheduled?,06_incident_management_sop.pdf,1,1,1
+Q030,What does 'no pg_hba.conf entry' indicate?,07_postgresql_operations_runbook.pdf,1,1,1
+Q031,What should be done before a database restore?,07_postgresql_operations_runbook.pdf,2,1,1
+Q032,Does a successful PostgreSQL backup job prove recoverability?,07_postgresql_operations_runbook.pdf,1,1,1
+Q033,What is the purpose of least privilege in PostgreSQL?,07_postgresql_operations_runbook.pdf,1,1,1
+Q034,Which command displays Ubuntu service status?,08_ubuntu_server_operations_runbook.pdf,1,1,1
+Q035,Which command reviews recent logs for a systemd service?,08_ubuntu_server_operations_runbook.pdf,1,1,1
+Q036,Does ping success prove an application port is reachable?,08_ubuntu_server_operations_runbook.pdf,1,1,1
+Q037,What does df -h show?,08_ubuntu_server_operations_runbook.pdf,1,2,1
+Q038,Why should broad recursive permission changes be avoided?,08_ubuntu_server_operations_runbook.pdf,1,1,1
+Q039,An employee cannot access an app after changing teams. Which policy describes the correct access update?,02_it_access_security_policy.pdf,1,1,1
+Q040,A user reports VPN connected but internal hostnames do not resolve. What guide and diagnostic area should be consulted?,05_vpn_troubleshooting_guide.pdf,1,1,1
+Q041,A critical database is unavailable to all business users. What priority is likely appropriate and which technical runbook is relevant?,06_incident_management_sop.pdf;07_postgresql_operations_runbook.pdf,1,1,1
+Q042,A new joiner has no laptop on their first day. What is the safe next step?,04_employee_onboarding_sop.pdf,1,1,1
+Q043,A laptop is four years old but works and meets security requirements. Must it be replaced?,03_laptop_asset_management_policy.pdf,1,1,1
+Q044,A VPN login repeatedly fails with MFA prompts the user did not initiate. What should the user do?,05_vpn_troubleshooting_guide.pdf;02_it_access_security_policy.pdf,1,1,1
+Q045,Which team should approve a privileged access exception?,02_it_access_security_policy.pdf,1,1,1
+Q046,What is the P2 acknowledgement target?,06_incident_management_sop.pdf,1,1,1
+Q047,Which Ubuntu command can show listening sockets?,08_ubuntu_server_operations_runbook.pdf,1,1,1
+Q048,What should be done before changing production database configuration?,07_postgresql_operations_runbook.pdf,3,3,1

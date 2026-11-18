@@ -1,0 +1,52 @@
+question_id,question,expected_source,reference_answer,question_type
+Q001,What are the standard office hours?,01_employee_handbook.pdf,"Monday to Friday, 9:30 a.m. to 6:30 p.m., including a one-hour meal break.",single_document
+Q002,How many annual leave days are provided?,01_employee_handbook.pdf,18 working days per calendar year for a full-year employee.,single_document
+Q003,How many sick leave days are provided?,01_employee_handbook.pdf,8 working days per calendar year.,single_document
+Q004,How many casual leave days are provided?,01_employee_handbook.pdf,6 working days per calendar year.,single_document
+Q005,How many annual leave days can carry forward?,01_employee_handbook.pdf,Up to 5 unused annual-leave days may carry into the next calendar year.,single_document
+Q006,Who approves a leave request?,01_employee_handbook.pdf,The reporting manager approves or declines leave requests in the HR portal.,single_document
+Q007,What should an employee do if absent or late?,01_employee_handbook.pdf,Notify the manager and People Operations as soon as practical; attendance corrections should be submitted within three working days.,single_document
+Q008,Are public holidays part of annual leave?,01_employee_handbook.pdf,No. Public holidays are separate from the leave balances.,single_document
+Q009,Is MFA required for remote access?,02_it_access_security_policy.pdf,"Yes. MFA is required for remote access, privileged accounts and cloud administration.",single_document
+Q010,Who approves a standard application access request?,02_it_access_security_policy.pdf,The manager approves business need and the system or data owner approves access; IT provisions after approvals are recorded.,single_document
+Q011,What is the target fulfilment time for a standard access request?,02_it_access_security_policy.pdf,Two business days after complete approvals.,single_document
+Q012,Can employees share passwords with support staff?,02_it_access_security_policy.pdf,"No. Passwords, recovery codes and one-time passcodes must never be shared.",single_document
+Q013,How often is privileged access reviewed?,02_it_access_security_policy.pdf,Quarterly.,single_document
+Q014,What happens when an employee changes roles?,02_it_access_security_policy.pdf,The manager requests new permissions and confirms which old permissions must be removed; access should not accumulate by default.,single_document
+Q015,What is the standard laptop lifecycle target?,03_laptop_asset_management_policy.pdf,"Four years from issue, subject to condition, warranty, security support and budget; it does not automatically guarantee replacement.",single_document
+Q016,Who must approve a laptop replacement?,03_laptop_asset_management_policy.pdf,The manager approves and IT Asset Management confirms.,single_document
+Q017,What should an employee do if a laptop is stolen?,03_laptop_asset_management_policy.pdf,Report it immediately to the IT Service Desk with the asset tag if available and last known time and location.,single_document
+Q018,What security preparation is required before laptop handover?,04_employee_onboarding_sop.pdf,"Asset tagging, supported OS, disk encryption, endpoint protection, device-management enrolment and required updates.",single_document
+Q019,Within how many working days should security training be completed?,04_employee_onboarding_sop.pdf,Within five working days.,single_document
+Q020,Can a new employee use a personal device if the company laptop is delayed?,04_employee_onboarding_sop.pdf,Not for restricted company systems unless explicitly approved; arrange a secure temporary working method with the manager and IT.,single_document
+Q021,What should be checked first if VPN cannot reach the gateway?,05_vpn_troubleshooting_guide.pdf,"Check ordinary internet connectivity, approved gateway hostname and device date/time.",single_document
+Q022,What should support do when MFA fails?,05_vpn_troubleshooting_guide.pdf,"Verify account status through approved tools, use identity-verified recovery if needed, and never ask for an OTP or approve a prompt for the user.",single_document
+Q023,Should a user repeatedly retry a failing VPN login?,05_vpn_troubleshooting_guide.pdf,No. Repeated attempts may trigger account lockout.,single_document
+Q024,What information should be included in a VPN support ticket?,05_vpn_troubleshooting_guide.pdf,"OS, VPN client version, time, network type, exact error, other affected users and troubleshooting attempted; exclude secrets.",single_document
+Q025,What defines a P1 incident?,06_incident_management_sop.pdf,"Critical service unavailable, suspected major security event or widespread outage preventing essential operations.",single_document
+Q026,What is the P1 acknowledgement target?,06_incident_management_sop.pdf,15 minutes.,single_document
+Q027,How often should stakeholders receive P1 updates?,06_incident_management_sop.pdf,Every 30 minutes while the major incident is active.,single_document
+Q028,Who is notified for a P1 incident?,06_incident_management_sop.pdf,"On-call incident lead, IT Operations Manager and relevant technical/security owner; Information Security immediately for security incidents.",single_document
+Q029,When should a P1 post-incident review be scheduled?,06_incident_management_sop.pdf,"After restoration, the service owner schedules a review for P1 and significant P2 incidents.",single_document
+Q030,What does 'no pg_hba.conf entry' indicate?,07_postgresql_operations_runbook.pdf,"The host-based authentication rules do not match the source address, database, user or authentication method.",single_document
+Q031,What should be done before a database restore?,07_postgresql_operations_runbook.pdf,Confirm the target environment and backup timestamp; verify backups and use an approved recovery plan.,single_document
+Q032,Does a successful PostgreSQL backup job prove recoverability?,07_postgresql_operations_runbook.pdf,No. Scheduled restore tests in an isolated environment are needed.,single_document
+Q033,What is the purpose of least privilege in PostgreSQL?,07_postgresql_operations_runbook.pdf,Grant only the permissions required for a defined task and review role membership and inherited privileges.,single_document
+Q034,Which command displays Ubuntu service status?,08_ubuntu_server_operations_runbook.pdf,systemctl status SERVICE.,single_document
+Q035,Which command reviews recent logs for a systemd service?,08_ubuntu_server_operations_runbook.pdf,journalctl -u SERVICE --since today.,single_document
+Q036,Does ping success prove an application port is reachable?,08_ubuntu_server_operations_runbook.pdf,No. Test the specific service and port using approved diagnostic tools.,single_document
+Q037,What does df -h show?,08_ubuntu_server_operations_runbook.pdf,Mounted filesystem capacity.,single_document
+Q038,Why should broad recursive permission changes be avoided?,08_ubuntu_server_operations_runbook.pdf,"They can grant excessive access, such as making an entire application tree world-writable.",single_document
+Q039,An employee cannot access an app after changing teams. Which policy describes the correct access update?,02_it_access_security_policy.pdf,The manager requests new permissions and confirms old permissions to remove; the system owner approves the application access.,cross_or_reasoning
+Q040,A user reports VPN connected but internal hostnames do not resolve. What guide and diagnostic area should be consulted?,05_vpn_troubleshooting_guide.pdf,"Consult the VPN guide's DNS and internal resource access section; confirm VPN state, approved hostname and capture timestamp and error details.",cross_or_reasoning
+Q041,A critical database is unavailable to all business users. What priority is likely appropriate and which technical runbook is relevant?,06_incident_management_sop.pdf;07_postgresql_operations_runbook.pdf,Likely P1 because a critical production database is unavailable to all business users; consult the PostgreSQL runbook and escalate through the P1 process.,cross_or_reasoning
+Q042,A new joiner has no laptop on their first day. What is the safe next step?,04_employee_onboarding_sop.pdf,The manager contacts IT Service Desk and agrees a secure temporary working arrangement; personal devices must not access restricted systems unless explicitly approved.,cross_or_reasoning
+Q043,A laptop is four years old but works and meets security requirements. Must it be replaced?,03_laptop_asset_management_policy.pdf,"No. Four years is a lifecycle target, not an automatic replacement guarantee; condition, warranty, security support and budget matter.",reasoning
+Q044,A VPN login repeatedly fails with MFA prompts the user did not initiate. What should the user do?,05_vpn_troubleshooting_guide.pdf;02_it_access_security_policy.pdf,Do not approve unexpected prompts; report suspected MFA abuse or suspicious login activity immediately to Security and the Service Desk.,cross_or_reasoning
+Q045,Which team should approve a privileged access exception?,02_it_access_security_policy.pdf,"Information Security must approve documented exceptions with business reason, compensating controls, owner and expiry date.",single_document
+Q046,What is the P2 acknowledgement target?,06_incident_management_sop.pdf,One business hour.,single_document
+Q047,Which Ubuntu command can show listening sockets?,08_ubuntu_server_operations_runbook.pdf,"ss -tulpn, subject to permissions and approved use.",single_document
+Q048,What should be done before changing production database configuration?,07_postgresql_operations_runbook.pdf,"Obtain approval, verify backups and use a tested change plan.",single_document
+Q049,An employee asks for the Nexora CEO's personal phone number. Is this in the knowledge base?,NONE,The provided knowledge base does not contain this information; the assistant should say it cannot find an answer in its sources.,unanswerable
+Q050,What is the exact salary of a Nexora employee?,NONE,The provided knowledge base does not contain salary information; the assistant should not invent an answer.,unanswerable
+Q051,Which VPN provider does Nexora use?,NONE,The sample documents do not identify a specific VPN vendor; the assistant should say this is not specified.,unanswerable
