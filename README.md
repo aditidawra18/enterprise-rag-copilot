@@ -215,3 +215,7 @@ All documents contain synthetic demonstration information and do not represent a
 
 **Project:** Enterprise Knowledge & IT Support Copilot  
 **Category:** Generative AI | Retrieval-Augmented Generation | NLP
+
+## Application Preview
+
+![Enterprise Knowledge Copilot](Screenshots/Image1.png)
