@@ -1,89 +1,102 @@
 
 import chromadb
+from pathlib import Path
 from sentence_transformers import SentenceTransformer
+
 from src.chunking import create_chunks
 
 
-# STEP 1: Generate chunks using the updated chunking module
-all_chunks = create_chunks()
+# Project paths
+BASE_DIR = Path(__file__).resolve().parent.parent
+DB_PATH = BASE_DIR / "chroma_db"
 
-print("Total chunks generated:", len(all_chunks))
-
-
-# STEP 2: Load embedding model
-model = SentenceTransformer("all-MiniLM-L6-v2")
+COLLECTION_NAME = "nexora_documents"
+EMBEDDING_MODEL = "all-MiniLM-L6-v2"
 
 
-# STEP 3: Generate embeddings
-texts = [chunk["text"] for chunk in all_chunks]
+def initialize_vector_store():
 
-embeddings = model.encode(texts)
+    # Load document chunks
+    all_chunks = create_chunks()
 
+    if not all_chunks:
+        raise ValueError("No document chunks found.")
 
-# STEP 4: Connect to persistent ChromaDB
-client = chromadb.PersistentClient(
-    path="chroma_db"
-)
+    # Connect to persistent ChromaDB
+    client = chromadb.PersistentClient(
+        path=str(DB_PATH)
+    )
 
+    # Check whether collection already exists
+    existing_collections = [
+        collection.name
+        for collection in client.list_collections()
+    ]
 
-# STEP 5: Delete the old collection to remove outdated chunks
-collection_name = "nexora_documents"
+    if COLLECTION_NAME in existing_collections:
 
-existing_collections = client.list_collections()
+        collection = client.get_collection(
+            name=COLLECTION_NAME
+        )
 
-existing_names = [
-    collection.name if hasattr(collection, "name") else collection
-    for collection in existing_collections
-]
+        # Reuse database if chunk count matches
+        if collection.count() == len(all_chunks):
+            print("Existing ChromaDB collection loaded.")
+            return collection
 
-if collection_name in existing_names:
-    client.delete_collection(name=collection_name)
+        # Rebuild if chunk count has changed
+        print("Chunk count mismatch. Rebuilding collection...")
 
+        client.delete_collection(
+            name=COLLECTION_NAME
+        )
 
-# STEP 6: Create a fresh collection
-collection = client.create_collection(
-    name=collection_name
-)
+    # Generate embeddings only when building the database
+    print("Loading embedding model...")
 
+    model = SentenceTransformer(EMBEDDING_MODEL)
 
-# STEP 7: Store chunks, embeddings and metadata
-collection.add(
-    ids=[
-        chunk["chunk_id"]
-        for chunk in all_chunks
-    ],
-
-    documents=texts,
-
-    embeddings=embeddings.tolist(),
-
-    metadatas=[
-        {
-            "source": chunk["source"],
-            "page": chunk["page"],
-            "pages": ", ".join(map(str, chunk["pages"]))
-        }
+    texts = [
+        chunk["text"]
         for chunk in all_chunks
     ]
-)
+
+    embeddings = model.encode(texts)
+
+    # Create collection
+    collection = client.create_collection(
+        name=COLLECTION_NAME
+    )
+
+    # Store chunks and metadata
+    collection.add(
+        ids=[
+            chunk["chunk_id"]
+            for chunk in all_chunks
+        ],
+        documents=texts,
+        embeddings=embeddings.tolist(),
+        metadatas=[
+            {
+                "source": chunk["source"],
+                "page": chunk["page"],
+                "pages": ", ".join(
+                    map(str, chunk["pages"])
+                )
+            }
+            for chunk in all_chunks
+        ]
+    )
+
+    print("ChromaDB collection created successfully.")
+    print("Total records:", collection.count())
+
+    return collection
 
 
-# STEP 8: Verify stored records
-print("\n====================================")
-print("VECTOR DATABASE REBUILT")
-print("====================================")
+if __name__ == "__main__":
 
-print("Total chunks generated:", len(all_chunks))
-print("Total records in ChromaDB:", collection.count())
+    collection = initialize_vector_store()
 
-
-# Display first stored record
-result = collection.get(
-    ids=[all_chunks[0]["chunk_id"]],
-    include=["documents", "metadatas"]
-)
-
-print("\nFirst stored record:")
-print("Chunk ID:", result["ids"][0])
-print("Text:", result["documents"][0])
-print("Metadata:", result["metadatas"][0])
+    print("\nVECTOR DATABASE STATUS")
+    print("Total records:", collection.count())

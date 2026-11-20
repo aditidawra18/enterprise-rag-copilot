@@ -24,3 +24,5 @@ requests
 
 # Data handling and evaluation
 pandas
+
+google-genai

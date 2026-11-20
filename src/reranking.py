@@ -1,117 +1,42 @@
 
-import chromadb
-from rank_bm25 import BM25Okapi
-from sentence_transformers import SentenceTransformer, CrossEncoder
-from src.chunking import create_chunks
+from sentence_transformers import CrossEncoder
+
+from src.hybrid_search import hybrid_search, initialize_hybrid_search
 
 
-# 1. Load chunks from the centralized chunking module
-all_chunks = create_chunks()
-
-# Map chunk IDs to their positions
-chunk_id_to_index = {
-    chunk["chunk_id"]: index
-    for index, chunk in enumerate(all_chunks)
-}
+reranker = None
 
 
-# 2. Create BM25 index
-tokenized_corpus = [
-    chunk["text"].lower().split()
-    for chunk in all_chunks
-]
+def initialize_reranker():
 
-bm25 = BM25Okapi(tokenized_corpus)
+    global reranker
 
+    if reranker is None:
 
-# 3. Connect to ChromaDB
-client = chromadb.PersistentClient(path="chroma_db")
+        initialize_hybrid_search()
 
-collection = client.get_collection(
-    name="nexora_documents"
-)
+        reranker = CrossEncoder(
+            "cross-encoder/ms-marco-MiniLM-L-6-v2"
+        )
 
-if collection.count() != len(all_chunks):
-    raise ValueError(
-        "Chunk count mismatch. Rebuild ChromaDB."
-    )
+        print("CrossEncoder initialized successfully.")
 
 
-# 4. Load embedding and reranking models
-embedding_model = SentenceTransformer(
-    "all-MiniLM-L6-v2"
-)
-
-reranker = CrossEncoder(
-    "cross-encoder/ms-marco-MiniLM-L-6-v2"
-)
-
-
-# 5. Define reusable reranking function
 def reranked_search(query, top_k=5):
 
-    # BM25 retrieval
-    query_tokens = query.lower().split()
+    initialize_reranker()
 
-    bm25_scores = bm25.get_scores(query_tokens)
+    # Retrieve candidates using hybrid search
+    candidates = hybrid_search(query, top_k=top_k)
 
-    bm25_indices = sorted(
-        range(len(bm25_scores)),
-        key=lambda i: bm25_scores[i],
-        reverse=True
-    )[:top_k]
+    if not candidates:
+        return []
 
-
-    # Vector retrieval
-    query_embedding = embedding_model.encode(query)
-
-    vector_results = collection.query(
-        query_embeddings=[query_embedding.tolist()],
-        n_results=top_k
-    )
-
-
-    # Reciprocal Rank Fusion
-    rrf_scores = {}
-    k = 60
-
-    # Add BM25 rankings
-    for rank, index in enumerate(bm25_indices, start=1):
-
-        rrf_scores[index] = (
-            rrf_scores.get(index, 0) + 1 / (k + rank)
-        )
-
-
-    # Add semantic/vector rankings
-    for rank, chunk_id in enumerate(
-        vector_results["ids"][0], start=1
-    ):
-
-        index = chunk_id_to_index.get(chunk_id)
-
-        if index is None:
-            continue
-
-        rrf_scores[index] = (
-            rrf_scores.get(index, 0) + 1 / (k + rank)
-        )
-
-
-    # Select top candidates using RRF
-    candidates = sorted(
-        rrf_scores.items(),
-        key=lambda item: item[1],
-        reverse=True
-    )[:top_k]
-
-
-    # Prepare query-document pairs for CrossEncoder
+    # Prepare query-document pairs
     pairs = [
-        [query, all_chunks[index]["text"]]
-        for index, score in candidates
+        [query, chunk["text"]]
+        for chunk in candidates
     ]
-
 
     # CrossEncoder reranking
     rerank_scores = reranker.predict(pairs)
@@ -122,28 +47,19 @@ def reranked_search(query, top_k=5):
         reverse=True
     )
 
-
-    # Format results
+    # Attach reranking scores
     retrieved_chunks = []
 
-    for (index, rrf_score), rerank_score in reranked_results:
-
-        chunk = all_chunks[index]
+    for chunk, rerank_score in reranked_results:
 
         retrieved_chunks.append({
-            "chunk_id": chunk["chunk_id"],
-            "text": chunk["text"],
-            "source": chunk["source"],
-            "page": chunk["page"],
-            "pages": chunk["pages"],
-            "rrf_score": rrf_score,
+            **chunk,
             "rerank_score": float(rerank_score)
         })
 
     return retrieved_chunks
 
 
-# 6. Allow manual testing from terminal
 if __name__ == "__main__":
 
     query = input("Ask your question: ")

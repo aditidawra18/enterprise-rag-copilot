@@ -3,19 +3,40 @@ from src.reranking import reranked_search
 from src.llm_generator import generate_answer
 
 
-def rag_pipeline(question):
+def rag_pipeline(question, chat_history=None, provider="ollama"):
 
     # Step 1: Retrieve and rerank relevant document chunks
     retrieved_chunks = reranked_search(question, top_k=5)
 
     # Step 2: Check whether any context was retrieved
     if not retrieved_chunks:
-        return "I couldn't find enough information in the provided documents."
+        return {
+            "answer": "I couldn't find enough information in the provided documents.",
+            "sources": []
+        }
 
-    # Step 3: Generate an answer using the retrieved context
-    answer = generate_answer(question, retrieved_chunks)
+    # Step 3: Generate answer using the selected LLM
+    answer = generate_answer(
+        question,
+        retrieved_chunks,
+        chat_history=chat_history,
+        provider=provider
+    )
 
-    return answer
+    # Step 4: Extract source information
+    sources = [
+        {
+            "document": chunk["source"],
+            "page": chunk["page"],
+            "pages": chunk["pages"]
+        }
+        for chunk in retrieved_chunks
+    ]
+
+    return {
+        "answer": answer,
+        "sources": sources
+    }
 
 
 if __name__ == "__main__":
@@ -30,7 +51,11 @@ if __name__ == "__main__":
             print("Exiting assistant...")
             break
 
-        answer = rag_pipeline(question)
+        result = rag_pipeline(question)
 
         print("\nAnswer:")
-        print(answer)
+        print(result["answer"])
+
+        print("\nSources:")
+        for source in result["sources"]:
+            print(source)

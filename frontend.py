@@ -2,9 +2,12 @@
 import streamlit as st
 import requests
 
+from src.rag_pipeline import rag_pipeline
 
-API_URL = "http://127.0.0.1:8000/chat"
 
+# --------------------------------------------------
+# PAGE CONFIGURATION
+# --------------------------------------------------
 
 st.set_page_config(
     page_title="Enterprise RAG Copilot",
@@ -13,15 +16,56 @@ st.set_page_config(
 )
 
 st.title("🤖 Enterprise Knowledge Copilot")
-st.caption("Ask questions about company policies, IT support and operations.")
+
+st.caption(
+    "Ask questions about company policies, IT support and operations."
+)
 
 
-# Initialize conversation history
+# --------------------------------------------------
+# APPLICATION MODE
+# --------------------------------------------------
+
+DEPLOYMENT_MODE = st.secrets.get("DEPLOYMENT_MODE", "local")
+
+API_URL = "http://127.0.0.1:8000/chat"
+
+
+# --------------------------------------------------
+# CLOUD RESOURCE INITIALIZATION
+# --------------------------------------------------
+
+@st.cache_resource
+def initialize_cloud_resources():
+
+    from src.vector_store import initialize_vector_store
+    from src.hybrid_search import initialize_hybrid_search
+    from src.reranking import initialize_reranker
+
+    # Build or reuse ChromaDB
+    initialize_vector_store()
+
+    # Initialize retrieval models
+    initialize_hybrid_search()
+
+    # Initialize CrossEncoder
+    initialize_reranker()
+
+    return True
+
+
+# --------------------------------------------------
+# INITIALIZE CONVERSATION HISTORY
+# --------------------------------------------------
+
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
 
-# Display previous messages
+# --------------------------------------------------
+# DISPLAY PREVIOUS MESSAGES
+# --------------------------------------------------
+
 for message in st.session_state.messages:
 
     with st.chat_message(message["role"]):
@@ -33,18 +77,28 @@ for message in st.session_state.messages:
             with st.expander("View Sources"):
 
                 for source in message["sources"]:
-                    st.write(f"**Document:** {source['document']}")
-                    st.write(f"**Page:** {source['page']}")
+
+                    st.write(
+                        f"**Document:** {source['document']}"
+                    )
+
+                    st.write(
+                        f"**Page:** {source['page']}"
+                    )
+
                     st.divider()
 
 
-# Accept user question
+# --------------------------------------------------
+# ACCEPT USER QUESTION
+# --------------------------------------------------
+
 question = st.chat_input("Ask your question...")
 
 
 if question:
 
-    # Capture previous conversation BEFORE adding current question
+    # Capture previous conversation before adding current question
     chat_history = [
         {
             "role": message["role"],
@@ -54,8 +108,7 @@ if question:
         if message["role"] in ["user", "assistant"]
     ]
 
-
-    # Display and store current user question
+    # Store and display user question
     st.session_state.messages.append({
         "role": "user",
         "content": question
@@ -65,44 +118,75 @@ if question:
         st.markdown(question)
 
 
-    # Generate assistant response
+    # --------------------------------------------------
+    # GENERATE ASSISTANT RESPONSE
+    # --------------------------------------------------
+
     with st.chat_message("assistant"):
 
-        with st.spinner("Searching documents and generating answer..."):
+        with st.spinner(
+            "Searching documents and generating answer..."
+        ):
 
             try:
 
-                response = requests.post(
-                    API_URL,
-                    json={
-                        "question": question,
-                        "chat_history": chat_history
-                    },
-                    timeout=180
-                )
+                if DEPLOYMENT_MODE == "cloud":
 
-                response.raise_for_status()
+                    # Initialize cloud resources once
+                    initialize_cloud_resources()
 
-                result = response.json()
+                    # Direct RAG pipeline using Gemini
+                    result = rag_pipeline(
+                        question,
+                        chat_history=chat_history,
+                        provider="gemini"
+                    )
+
+                else:
+
+                    # Local FastAPI + Ollama
+                    response = requests.post(
+                        API_URL,
+                        json={
+                            "question": question,
+                            "chat_history": chat_history
+                        },
+                        timeout=180
+                    )
+
+                    response.raise_for_status()
+
+                    result = response.json()
+
 
                 answer = result["answer"]
                 sources = result.get("sources", [])
 
-            except requests.RequestException as e:
 
-                answer = f"Unable to connect to the API: {e}"
+            except Exception as e:
+
+                answer = f"An error occurred: {e}"
                 sources = []
 
 
+        # Display answer
         st.markdown(answer)
 
+        # Display sources
         if sources:
 
             with st.expander("View Sources"):
 
                 for source in sources:
-                    st.write(f"**Document:** {source['document']}")
-                    st.write(f"**Page:** {source['page']}")
+
+                    st.write(
+                        f"**Document:** {source['document']}"
+                    )
+
+                    st.write(
+                        f"**Page:** {source['page']}"
+                    )
+
                     st.divider()
 
 

@@ -2,49 +2,71 @@
 import chromadb
 from rank_bm25 import BM25Okapi
 from sentence_transformers import SentenceTransformer
+
 from src.chunking import create_chunks
+from src.vector_store import DB_PATH, COLLECTION_NAME
 
 
-# 1. Load chunks from the centralized chunking module
-all_chunks = create_chunks()
-
-# Create a mapping between chunk IDs and their positions
-chunk_id_to_index = {
-    chunk["chunk_id"]: index
-    for index, chunk in enumerate(all_chunks)
-}
+# Initialize resources only when first required
+all_chunks = None
+chunk_id_to_index = None
+bm25 = None
+embedding_model = None
+collection = None
 
 
-# 2. Create BM25 index
-tokenized_corpus = [
-    chunk["text"].lower().split()
-    for chunk in all_chunks
-]
+def initialize_hybrid_search():
 
-bm25 = BM25Okapi(tokenized_corpus)
+    global all_chunks
+    global chunk_id_to_index
+    global bm25
+    global embedding_model
+    global collection
 
+    if collection is not None:
+        return
 
-# 3. Connect to ChromaDB
-client = chromadb.PersistentClient(path="chroma_db")
+    # Load document chunks
+    all_chunks = create_chunks()
 
-collection = client.get_collection(
-    name="nexora_documents"
-)
+    chunk_id_to_index = {
+        chunk["chunk_id"]: index
+        for index, chunk in enumerate(all_chunks)
+    }
 
-if collection.count() != len(all_chunks):
-    raise ValueError(
-        "Chunk count mismatch. Rebuild ChromaDB."
+    # Initialize BM25
+    tokenized_corpus = [
+        chunk["text"].lower().split()
+        for chunk in all_chunks
+    ]
+
+    bm25 = BM25Okapi(tokenized_corpus)
+
+    # Connect to ChromaDB
+    client = chromadb.PersistentClient(
+        path=str(DB_PATH)
     )
 
+    collection = client.get_collection(
+        name=COLLECTION_NAME
+    )
 
-# 4. Load embedding model
-embedding_model = SentenceTransformer(
-    "all-MiniLM-L6-v2"
-)
+    if collection.count() != len(all_chunks):
+        raise ValueError(
+            "Chunk count mismatch. Rebuild ChromaDB."
+        )
+
+    # Load embedding model
+    embedding_model = SentenceTransformer(
+        "all-MiniLM-L6-v2"
+    )
+
+    print("Hybrid search initialized successfully.")
 
 
-# 5. Define reusable hybrid search function
 def hybrid_search(query, top_k=5):
+
+    initialize_hybrid_search()
 
     # BM25 retrieval
     query_tokens = query.lower().split()
@@ -57,7 +79,6 @@ def hybrid_search(query, top_k=5):
         reverse=True
     )[:top_k]
 
-
     # Vector retrieval
     query_embedding = embedding_model.encode(query)
 
@@ -66,24 +87,18 @@ def hybrid_search(query, top_k=5):
         n_results=top_k
     )
 
-
-    # Reciprocal Rank Fusion (RRF)
+    # Reciprocal Rank Fusion
     rrf_scores = {}
     k = 60
 
-    # Add BM25 rankings
     for rank, index in enumerate(bm25_indices, start=1):
-
         rrf_scores[index] = (
             rrf_scores.get(index, 0) + 1 / (k + rank)
         )
 
-
-    # Add semantic/vector rankings
     for rank, chunk_id in enumerate(
         vector_results["ids"][0], start=1
     ):
-
         index = chunk_id_to_index.get(chunk_id)
 
         if index is None:
@@ -93,14 +108,12 @@ def hybrid_search(query, top_k=5):
             rrf_scores.get(index, 0) + 1 / (k + rank)
         )
 
-
     # Sort by combined RRF score
     final_results = sorted(
         rrf_scores.items(),
         key=lambda item: item[1],
         reverse=True
     )[:top_k]
-
 
     # Format results
     retrieved_chunks = []
@@ -121,7 +134,6 @@ def hybrid_search(query, top_k=5):
     return retrieved_chunks
 
 
-# 6. Allow manual testing from terminal
 if __name__ == "__main__":
 
     query = input("Ask your question: ")
